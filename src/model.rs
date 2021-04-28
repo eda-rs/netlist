@@ -45,8 +45,3 @@ impl Default for PinDirection {
         PinDirection::Input
     }
 }
-
-// impl<N, G, P> NetList<N, G, P> {
-//     fn verilog2netlist(file:) {}
-//     fn netlist2verilog(&self) {}
-// }

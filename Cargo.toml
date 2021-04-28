@@ -9,3 +9,4 @@ descriptions = ["generic netlist data structure for VLSI design"]
 
 [dependencies]
 nom = "6.0"
+thiserror = "1.0"
