@@ -8,4 +8,6 @@ pub enum NetListError {
     GateNotFound(String, String),
     #[error("Pin `{0}` not found in the netlist `{1}`")]
     PinNotFound(String, String),
+    #[error("Sever Error in the system")]
+    SeverError,
 }

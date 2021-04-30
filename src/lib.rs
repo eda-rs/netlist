@@ -5,6 +5,7 @@ mod error;
 mod model;
 mod ops;
 mod parser;
+mod saver;
 
 pub use model::NetList;
 
