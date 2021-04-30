@@ -1,7 +1,7 @@
 use crate::{error::NetListError, model::PinDirection, NetList};
 use std::{collections::HashMap, error, io::Write};
 impl<N: Default, G: Default, P: Default> NetList<N, G, P> {
-    fn netlist2verilog<W: Write>(&self, mut f: W) -> Result<(), Box<dyn error::Error>> {
+    pub fn netlist2verilog<W: Write>(&self, mut f: W) -> Result<(), Box<dyn error::Error>> {
         write!(f, "module {}", self.name)?;
         write!(
             f,
