@@ -8,14 +8,14 @@ type NodeIndex = usize;
 #[derive(Default)]
 pub struct NetList<N, G, P> {
     pub name: String, // netlist name or module name
-    pub(crate) nets: Vec<Net<N>>,
-    pub(crate) gates: Vec<Gate<G>>,
-    pub(crate) pins: Vec<Pin<P>>,
-    pub(crate) nodes: Vec<Node>, // internal node, or gate pin
+    pub nets: Vec<Net<N>>,
+    pub gates: Vec<Gate<G>>,
+    pub pins: Vec<Pin<P>>,
+    pub nodes: Vec<Node>, // internal node, or gate pin
     //fast access
-    pub(crate) net_map: HashMap<String, NetIndex>,
-    pub(crate) gate_map: HashMap<String, GateIndex>,
-    pub(crate) pin_map: HashMap<String, PinIndex>,
+    pub net_map: HashMap<String, NetIndex>,
+    pub gate_map: HashMap<String, GateIndex>,
+    pub pin_map: HashMap<String, PinIndex>,
 }
 
 #[derive(Default)]
@@ -30,6 +30,7 @@ pub enum PinDirection {
     Output,
 }
 
+#[derive(Clone)]
 pub enum Load {
     Gate(GateIndex),
     Net(NetIndex),

@@ -2,7 +2,7 @@
 use std::error::Error;
 use std::result::Result;
 mod error;
-mod model;
+pub mod model;
 mod ops;
 mod parser;
 mod saver;

@@ -1,5 +1,5 @@
 use crate::error::NetListError;
-use crate::model::{Gate, GateIndex, Load, Net, NetList, Node};
+use crate::model::{Gate, Load, Net, NetList, Node};
 use crate::NResult;
 impl<N: Default, G: Default, P: Default> NetList<N, G, P> {
     // buffer is a non-functional gate that commonly used in physical design to
@@ -9,11 +9,7 @@ impl<N: Default, G: Default, P: Default> NetList<N, G, P> {
     // source: (source gate name)
     // net: (net name)
     // gate: (gate name,gate model name,input pin, output pin)
-    pub fn insert_buffer(
-        &mut self,
-        net: &str,
-        gate: (&str, &str, &str, &str),
-    ) -> NResult<GateIndex> {
+    pub fn insert_buffer(&mut self, net: &str, gate: (&str, &str, &str, &str)) -> NResult<String> {
         match self.gate_map.get(gate.0) {
             None => {
                 let n1_idx = self.nodes.len();
@@ -56,8 +52,8 @@ impl<N: Default, G: Default, P: Default> NetList<N, G, P> {
                         )))
                     }
                 }
-                self.net_map.insert(new_net_name, new_net_idx);
-                Ok(new_gate_idx)
+                self.net_map.insert(new_net_name.clone(), new_net_idx);
+                Ok(new_net_name.clone())
             }
             Some(_) => Err(Box::new(NetListError::GateAlreadyExist(
                 net.to_string(),
@@ -76,6 +72,17 @@ impl<N: Default, G: Default, P: Default> NetList<N, G, P> {
         }
     }
 
+    // get internal net data by name
+    pub fn get_mut_net(&mut self, name: &str) -> NResult<&mut N> {
+        match self.net_map.get(name) {
+            Some(i) => Ok(&mut self.nets[*i].data),
+            None => Err(Box::new(NetListError::NetNotFound(
+                name.to_string(),
+                self.name.clone(),
+            ))),
+        }
+    }
+
     // get internal gate data by name
     pub fn get_gate(&self, name: &str) -> NResult<&G> {
         match self.gate_map.get(name) {
@@ -87,10 +94,32 @@ impl<N: Default, G: Default, P: Default> NetList<N, G, P> {
         }
     }
 
-    // get internal net data by name
+    // get mutable internal gate data by name
+    pub fn get_mut_gate(&mut self, name: &str) -> NResult<&mut G> {
+        match self.gate_map.get(name) {
+            Some(i) => Ok(&mut self.gates[*i].data),
+            None => Err(Box::new(NetListError::GateNotFound(
+                name.to_string(),
+                self.name.clone(),
+            ))),
+        }
+    }
+
+    // get internal pin data by name
     pub fn get_pin(&self, name: &str) -> NResult<&P> {
         match self.pin_map.get(name) {
             Some(i) => Ok(&self.pins[*i].data),
+            None => Err(Box::new(NetListError::PinNotFound(
+                name.to_string(),
+                self.name.clone(),
+            ))),
+        }
+    }
+
+    // get mutable internal pin data by name
+    pub fn get_mut_pin(&mut self, name: &str) -> NResult<&mut P> {
+        match self.pin_map.get(name) {
+            Some(i) => Ok(&mut self.pins[*i].data),
             None => Err(Box::new(NetListError::PinNotFound(
                 name.to_string(),
                 self.name.clone(),
@@ -136,5 +165,19 @@ impl<N: Default, G: Default, P: Default> NetList<N, G, P> {
             }
         }
         Ok(())
+    }
+    // get net's load gate , if load contains Pin, return Error
+    pub fn get_net_load(&self, name: &str) -> NResult<Vec<Load>> {
+        match self.net_map.get(name) {
+            Some(net_i) => Ok(self.nets[*net_i]
+                .load_nodes
+                .iter()
+                .map(|x| self.nodes[*x].load.clone())
+                .collect()),
+            None => Err(Box::new(NetListError::NetNotFound(
+                name.to_string(),
+                self.name.clone(),
+            ))),
+        }
     }
 }
