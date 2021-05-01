@@ -31,12 +31,9 @@ impl<N: Default, G: Default, P: Default> FromStr for NetList<N, G, P> {
     }
 }
 
-use std::{error, fs, path::Path};
+use std::{error, fs};
 impl<N: Default, G: Default, P: Default> NetList<N, G, P> {
-    pub fn verilog2netlist(file: P) -> Result<Self, Box<dyn error::Error>>
-    where
-        P: AsRef<Path>,
-    {
+    pub fn verilog2netlist(file: &str) -> Result<Self, Box<dyn error::Error>> {
         Ok(fs::read_to_string(file)?.parse::<NetList<N, G, P>>()?)
     }
 }

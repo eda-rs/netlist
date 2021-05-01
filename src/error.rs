@@ -10,4 +10,6 @@ pub enum NetListError {
     PinNotFound(String, String),
     #[error("Sever Error in the system")]
     SeverError,
+    #[error("Gate `{0}` already in the netlist `{1}` ")]
+    GateAlreadyExist(String, String),
 }
