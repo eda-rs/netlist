@@ -1,12 +1,12 @@
-use super::base::{identifier, tstring, ws};
+use super::base::{number,identifier, tstring, ws};
 use crate::model::PinDirection;
 use nom::branch::alt;
-use nom::bytes::complete::tag;
-use nom::character::complete::alphanumeric1;
-use nom::combinator::map;
+use nom::bytes::complete::{tag,is_not};
+use nom::character::complete::{alphanumeric1};
+use nom::combinator::{map,value};
 use nom::error::context;
 use nom::multi::separated_list1;
-use nom::sequence::{delimited, preceded, terminated, tuple};
+use nom::sequence::{pair,separated_pair,delimited, preceded, terminated, tuple};
 
 use super::ParseRes;
 
@@ -21,7 +21,7 @@ pub fn instantiate_stmt(s: &str) -> ParseRes<&str, (&str, &str, Vec<BindingT>)> 
                 identifier,
                 delimited(
                     tag("("),
-                    separated_list1(tag(","), binding_parser),
+                    separated_list1(ws(tag(",")), binding_parser),
                     tag(")"),
                 ),
             )),
@@ -38,6 +38,7 @@ pub fn port_map_stmt(s: &str) -> ParseRes<&str, Vec<&str>> {
             ws(tag(";")),
         ),
     )(s)
+
 }
 
 pub fn port_direction_declare_stmt(s: &str) -> ParseRes<&str, (PinDirection, &str)> {
@@ -54,6 +55,23 @@ pub fn port_direction_declare_stmt(s: &str) -> ParseRes<&str, (PinDirection, &st
             )),
             ws(tag(";")),
         ),
+    )(s)
+}
+
+// return msb and lsb
+pub fn port_bitwidth(s:&str) -> ParseRes<&str,(u32,u32)> {
+    delimited(
+        tag("["),
+        separated_pair(number,tag(":"),number),
+        tag("]"),
+    )(s)
+}
+
+// verilog comment statment
+pub fn comment(s: &str) -> ParseRes<&str, ()> {
+  value(
+    (), // Output is thrown away.
+    pair(ws(tag("//")), is_not("\n\r"))
     )(s)
 }
 

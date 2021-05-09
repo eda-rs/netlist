@@ -2,13 +2,14 @@ use crate::{
     model::{Load, PinDirection},
     NetList,
 };
-use std::{error, io::Write};
+use std::{error, io::Write,fs::File};
 impl<N: Default, G: Default, P: Default> NetList<N, G, P> {
-    pub fn netlist2verilog<W: Write>(&self, mut f: W) -> Result<(), Box<dyn error::Error>> {
-        write!(f, "module {}", self.name)?;
+    pub fn netlist2verilog(&self, file:&str) -> Result<(), Box<dyn error::Error>> {
+        let mut f = File::create(file)?;
+        write!(f, "module {}\n", self.name)?;
         write!(
             f,
-            "({});",
+            "({});\n",
             self.pin_map
                 .keys()
                 .map(|x| format!("{}", x))
@@ -17,8 +18,8 @@ impl<N: Default, G: Default, P: Default> NetList<N, G, P> {
         )?;
         for p in &self.pins {
             match p.direction {
-                PinDirection::Input => write!(f, "input {};", p.name)?,
-                PinDirection::Output => write!(f, "output {};", p.name)?,
+                PinDirection::Input => write!(f, "input {};\n", p.name)?,
+                PinDirection::Output => write!(f, "output {};\n", p.name)?,
             }
         }
         for n in &self.nets {
@@ -37,7 +38,7 @@ impl<N: Default, G: Default, P: Default> NetList<N, G, P> {
                     }
                     write!(
                         f,
-                        "{} {} ({});",
+                        "{} {} ({});\n",
                         gate.model,
                         gate.name,
                         p2n_list
@@ -49,7 +50,7 @@ impl<N: Default, G: Default, P: Default> NetList<N, G, P> {
                 }
             }
         }
-        write!(f, "endmodule")?;
+        write!(f, "endmodule\n")?;
         Ok(())
     }
 }

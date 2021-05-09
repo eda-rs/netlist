@@ -125,9 +125,9 @@ pub fn verilog_parser<N: Default, G: Default, P: Default>(
                             name: gate_port.to_string(),
                             load: Load::Net(net_id),
                         });
-                        new_gate.load_nodes.push(node_id);
                     } // create new net
                 }
+                new_gate.load_nodes.push(node_id);
             }
             netlist.gates.push(new_gate);
         }
