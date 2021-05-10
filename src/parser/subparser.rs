@@ -1,12 +1,12 @@
-use super::base::{number,identifier, tstring, ws};
+use super::base::{identifier, number, tstring, ws};
 use crate::model::PinDirection;
 use nom::branch::alt;
-use nom::bytes::complete::{tag,is_not};
-use nom::character::complete::{alphanumeric1};
-use nom::combinator::{map,value};
+use nom::bytes::complete::{is_not, tag};
+use nom::character::complete::alphanumeric1;
+use nom::combinator::{map, value};
 use nom::error::context;
 use nom::multi::separated_list1;
-use nom::sequence::{pair,separated_pair,delimited, preceded, terminated, tuple};
+use nom::sequence::{delimited, pair, preceded, separated_pair, terminated, tuple};
 
 use super::ParseRes;
 
@@ -38,7 +38,6 @@ pub fn port_map_stmt(s: &str) -> ParseRes<&str, Vec<&str>> {
             ws(tag(";")),
         ),
     )(s)
-
 }
 
 pub fn port_direction_declare_stmt(s: &str) -> ParseRes<&str, (PinDirection, &str)> {
@@ -58,20 +57,23 @@ pub fn port_direction_declare_stmt(s: &str) -> ParseRes<&str, (PinDirection, &st
     )(s)
 }
 
-// return msb and lsb
-pub fn port_bitwidth(s:&str) -> ParseRes<&str,(u32,u32)> {
-    delimited(
-        tag("["),
-        separated_pair(number,tag(":"),number),
-        tag("]"),
+pub fn wire_declare_stmt(s: &str) -> ParseRes<&str, &str> {
+    context(
+        "Wire Declare Statement",
+        terminated(preceded(ws(tag("wire")), identifier), ws(tag(";"))),
     )(s)
+}
+
+// return msb and lsb
+pub fn port_bitwidth(s: &str) -> ParseRes<&str, (u32, u32)> {
+    delimited(tag("["), separated_pair(number, tag(":"), number), tag("]"))(s)
 }
 
 // verilog comment statment
 pub fn comment(s: &str) -> ParseRes<&str, ()> {
-  value(
-    (), // Output is thrown away.
-    pair(ws(tag("//")), is_not("\n\r"))
+    value(
+        (), // Output is thrown away.
+        pair(ws(tag("//")), is_not("\n\r")),
     )(s)
 }
 

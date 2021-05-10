@@ -17,7 +17,7 @@ use std::{
 
 use verilog_parser::verilog_parser;
 
-impl<N: Default, G: Default, P: Default> FromStr for NetList<N, G, P> {
+impl<W: Default, N: Default, G: Default, P: Default> FromStr for NetList<W, N, G, P> {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match verilog_parser(s) {
@@ -32,8 +32,8 @@ impl<N: Default, G: Default, P: Default> FromStr for NetList<N, G, P> {
 }
 
 use std::{error, fs};
-impl<N: Default, G: Default, P: Default> NetList<N, G, P> {
+impl<W: Default, N: Default, G: Default, P: Default> NetList<W, N, G, P> {
     pub fn verilog2netlist(file: &str) -> Result<Self, Box<dyn error::Error>> {
-        Ok(fs::read_to_string(file)?.parse::<NetList<N, G, P>>()?)
+        Ok(fs::read_to_string(file)?.parse::<NetList<W, N, G, P>>()?)
     }
 }

@@ -1,25 +1,29 @@
 use super::{
     base::{tstring, ws},
-    subparser::{instantiate_stmt, port_direction_declare_stmt, port_map_stmt},
+    subparser::{instantiate_stmt, port_direction_declare_stmt, port_map_stmt, wire_declare_stmt},
     ParseRes,
 };
-use crate::model::{Gate, Load, Net, NetList, Node, Pin, PinDirection};
+use crate::model::{DriveLoad, Gate, Net, NetList, Node, Pin, PinDirection};
 use nom::{
     branch::permutation,
     bytes::complete::tag,
-    multi::many1,
+    multi::{many0, many1},
     sequence::{delimited, tuple},
 };
 
-pub fn verilog_parser<N: Default, G: Default, P: Default>(
+pub fn verilog_parser<W: Default, N: Default, G: Default, P: Default>(
     s: &str,
-) -> ParseRes<&str, NetList<N, G, P>> {
+) -> ParseRes<&str, NetList<W, N, G, P>> {
     delimited(
         ws(tag("module")),
         tuple((
             tstring,
             port_map_stmt,
-            permutation((many1(port_direction_declare_stmt), many1(instantiate_stmt))),
+            permutation((
+                many1(port_direction_declare_stmt),
+                many1(instantiate_stmt),
+                many0(wire_declare_stmt),
+            )),
         )),
         ws(tag("endmodule")),
     )(s)
@@ -40,42 +44,48 @@ pub fn verilog_parser<N: Default, G: Default, P: Default>(
 
             match p.0 {
                 // Input pin means that
-                // (1) new pin with load net will be created
-                // (2) new net that same name with pin name will be created, without load pin
+                // (1) new node with net as load will be created
+                // (2) new input pin wih created node will be created
+                // (3) new net with created node will be created
                 PinDirection::Input => {
                     netlist.nodes.push(Node {
                         name: pname.to_string(),
-                        load: Load::Net(net_id),
+                        from: DriveLoad::Pin(pin_id),
+                        to: DriveLoad::Net(net_id),
+                        data: N::default(),
                     });
                     netlist.pins.push(Pin {
                         name: pname.to_string(),
                         direction: p.0,
-                        load_node: Some(node_id),
+                        node: node_id,
                         ..Default::default()
                     });
                     netlist.nets.push(Net {
                         name: pname.to_string(), // pname is also net name, according to verilog standard
-                        load_nodes: vec![],
+                        nodes: vec![node_id],
                         ..Default::default()
                     });
                 }
                 // Output pin means that
-                // (1) new pin without load net will be created
-                // (2) new net that same name with pin name will be created, with load pin
+                // (1) new node with pin as load will be created
+                // (2) new output pin with created node will be created
+                // (3) new net that same name with pin name will be created, with created node
                 PinDirection::Output => {
                     netlist.nodes.push(Node {
                         name: pname.to_string(),
-                        load: Load::Pin(pin_id),
+                        from: DriveLoad::Net(net_id),
+                        to: DriveLoad::Pin(pin_id),
+                        data: N::default(),
                     });
                     netlist.pins.push(Pin {
                         name: pname.to_string(),
                         direction: p.0,
-                        load_node: None,
+                        node: node_id,
                         ..Default::default()
                     });
                     netlist.nets.push(Net {
                         name: pname.to_string(), // pname is also net name, according to verilog standard
-                        load_nodes: vec![node_id],
+                        nodes: vec![node_id],
                         ..Default::default()
                     });
                 }
@@ -93,20 +103,26 @@ pub fn verilog_parser<N: Default, G: Default, P: Default>(
             // update its binded net
             // first check if net is already exists in the net_map,
             // if not , create new net
+
+            // first node index in gate
+            // second node index = first node index + 1, so on
+            let mut node_id = netlist.nodes.len();
             for (gate_port, bind_net) in n.2 {
                 // create new node
-                let node_id = netlist.nodes.len();
                 match netlist.net_map.get(bind_net) {
                     // if bind_net already in net_map, it means that
                     // (1) no need to create new net in this step
-                    // (2) the gate_port(node) is the endpoint of net
-                    // (3) the gate_port(node) is the drive node of gate, or input pin of gate
+                    // (2) new node will be created
+                    // (3) as we dont know port direction from verilog, assume they are all output(net as load)
+                    // (4) update nodes in net and gate
                     Some(net_id) => {
                         let net = &mut netlist.nets[*net_id];
-                        net.load_nodes.push(node_id);
+                        net.nodes.push(node_id);
                         netlist.nodes.push(Node {
                             name: gate_port.to_string(),
-                            load: Load::Gate(gate_id),
+                            from: DriveLoad::Gate(gate_id),
+                            to: DriveLoad::Net(*net_id),
+                            data: N::default(),
                         })
                     }
                     // if bind_net no in the net map, it means that
@@ -118,16 +134,19 @@ pub fn verilog_parser<N: Default, G: Default, P: Default>(
                         netlist.net_map.insert(bind_net.to_string(), net_id);
                         netlist.nets.push(Net {
                             name: bind_net.to_string(),
-                            load_nodes: vec![],
+                            nodes: vec![node_id],
                             ..Default::default()
                         });
                         netlist.nodes.push(Node {
                             name: gate_port.to_string(),
-                            load: Load::Net(net_id),
+                            from: DriveLoad::Gate(gate_id),
+                            to: DriveLoad::Net(net_id),
+                            data: N::default(),
                         });
                     } // create new net
                 }
-                new_gate.load_nodes.push(node_id);
+                new_gate.nodes.push(node_id);
+                node_id += 1;
             }
             netlist.gates.push(new_gate);
         }

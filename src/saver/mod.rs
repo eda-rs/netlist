@@ -1,10 +1,11 @@
 use crate::{
-    model::{Load, PinDirection},
+    error::NetListError,
+    model::{DriveLoad, PinDirection},
     NetList,
 };
-use std::{error, io::Write,fs::File};
-impl<N: Default, G: Default, P: Default> NetList<N, G, P> {
-    pub fn netlist2verilog(&self, file:&str) -> Result<(), Box<dyn error::Error>> {
+use std::{error, fs::File, io::Write};
+impl<W: Default, N: Default, G: Default, P: Default> NetList<W, N, G, P> {
+    pub fn netlist2verilog(&self, file: &str) -> Result<(), Box<dyn error::Error>> {
         let mut f = File::create(file)?;
         write!(f, "module {}\n", self.name)?;
         write!(
@@ -22,34 +23,32 @@ impl<N: Default, G: Default, P: Default> NetList<N, G, P> {
                 PinDirection::Output => write!(f, "output {};\n", p.name)?,
             }
         }
-        for n in &self.nets {
-            for m in &n.load_nodes {
-                // match to find gate load
-                let gate_load_node = &self.nodes[*m];
-                if let Load::Gate(idx) = gate_load_node.load {
-                    let gate = &self.gates[idx];
-                    // prepare pin2net binding list
-                    let mut p2n_list = vec![(&gate_load_node.name, &n.name)];
-                    for gn_i in &gate.load_nodes {
-                        let a_node = &self.nodes[*gn_i];
-                        if let Load::Net(idx) = a_node.load {
-                            p2n_list.push((&a_node.name, &self.nets[idx].name))
-                        }
-                    }
-                    write!(
-                        f,
-                        "{} {} ({});\n",
-                        gate.model,
-                        gate.name,
-                        p2n_list
-                            .iter()
-                            .map(|d| format!(".{} ( {} )", d.0, d.1))
-                            .collect::<Vec<String>>()
-                            .join(" , ")
-                    )?;
+        let mut p2n_list = Vec::new();
+        for g in &self.gates {
+            for n_idx in &g.nodes {
+                let node = &self.nodes[*n_idx];
+                if let DriveLoad::Net(idx) = node.from {
+                    p2n_list.push((&node.name, &self.nets[idx].name));
+                } else if let DriveLoad::Net(idx) = node.to {
+                    p2n_list.push((&node.name, &self.nets[idx].name));
+                } else {
+                    return Err(Box::new(NetListError::SeverError));
                 }
             }
+            write!(
+                f,
+                "{} {} ({});\n",
+                g.model,
+                g.name,
+                p2n_list
+                    .iter()
+                    .map(|d| format!(".{} ( {} )", d.0, d.1))
+                    .collect::<Vec<String>>()
+                    .join(" , ")
+            )?;
+            p2n_list.clear();
         }
+
         write!(f, "endmodule\n")?;
         Ok(())
     }

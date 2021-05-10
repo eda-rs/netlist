@@ -6,12 +6,12 @@ pub type PinIndex = usize;
 type NodeIndex = usize;
 
 #[derive(Default)]
-pub struct NetList<N, G, P> {
+pub struct NetList<W, N, G, P> {
     pub name: String, // netlist name or module name
-    pub nets: Vec<Net<N>>,
+    pub nets: Vec<Net<W>>,
     pub gates: Vec<Gate<G>>,
     pub pins: Vec<Pin<P>>,
-    pub nodes: Vec<Node>, // internal node, or gate pin
+    pub nodes: Vec<Node<N>>, // internal node, or gate pin
     //fast access
     pub net_map: HashMap<String, NetIndex>,
     pub gate_map: HashMap<String, GateIndex>,
@@ -19,10 +19,10 @@ pub struct NetList<N, G, P> {
 }
 
 #[derive(Default)]
-pub struct Net<N> {
+pub struct Net<W> {
     pub name: String,
-    pub data: N,
-    pub load_nodes: Vec<NodeIndex>,
+    pub nodes: Vec<NodeIndex>,
+    pub data: W,
 }
 
 pub enum PinDirection {
@@ -31,22 +31,24 @@ pub enum PinDirection {
 }
 
 #[derive(Clone)]
-pub enum Load {
+pub enum DriveLoad {
     Gate(GateIndex),
     Net(NetIndex),
     Pin(PinIndex),
 }
 
-pub struct Node {
+pub struct Node<N> {
     pub name: String, // pin name
-    pub load: Load,
+    pub from: DriveLoad,
+    pub to: DriveLoad,
+    pub data: N,
 }
 
 #[derive(Default)]
 pub struct Pin<P> {
     pub name: String,
     pub direction: PinDirection,
-    pub load_node: Option<NodeIndex>,
+    pub node: NodeIndex,
     pub data: P,
 }
 
@@ -54,7 +56,7 @@ pub struct Pin<P> {
 pub struct Gate<G> {
     pub name: String,
     pub model: String,
-    pub load_nodes: Vec<NodeIndex>,
+    pub nodes: Vec<NodeIndex>,
     pub data: G,
 }
 
