@@ -2,13 +2,13 @@ use nom::branch::alt;
 
 use nom::bytes::complete::tag;
 use nom::character::complete::{alpha1, alphanumeric1, digit1, multispace0};
-use nom::combinator::{recognize,map_res};
+use nom::combinator::{map_res, opt, recognize};
 
 use nom::multi::{many0, many1};
 
 use super::ParseRes;
 use nom::sequence::{delimited, pair, tuple};
-use std::str::{self,FromStr};
+use std::str::{self, FromStr};
 
 // basic parse.
 
@@ -34,7 +34,7 @@ pub fn tstring(s: &str) -> ParseRes<&str, &str> {
 /// this parser allow hierachical representation of module name
 pub fn identifier(s: &str) -> ParseRes<&str, &str> {
     ws(recognize(pair(
-        tstring,
+        pair(opt(tag("\\")), tstring),
         many0(alt((
             recognize(many1(tuple((tag("\\\\["), digit1, tag("\\\\]"))))),
             recognize(many1(tuple((tag("\\["), digit1, tag("\\]"))))),
@@ -77,6 +77,11 @@ mod test {
     #[test]
     fn test_identifier_5() {
         let input = "abc/def/net[1][2]";
+        let (_, _) = identifier(input).unwrap();
+    }
+    #[test]
+    fn test_identifier_6() {
+        let input = "\\abc/def/net[1][2]";
         let (_, _) = identifier(input).unwrap();
     }
 }

@@ -1,6 +1,8 @@
 use super::{
     base::{tstring, ws},
-    subparser::{instantiate_stmt, port_direction_declare_stmt, port_map_stmt, wire_declare_stmt},
+    subparser::{
+        comment, instantiate_stmt, port_direction_declare_stmt, port_map_stmt, wire_declare_stmt,
+    },
     ParseRes,
 };
 use crate::model::{DriveLoad, Gate, Net, NetList, Node, Pin, PinDirection};
@@ -8,10 +10,16 @@ use nom::{
     branch::permutation,
     bytes::complete::tag,
     multi::{many0, many1},
-    sequence::{delimited, tuple},
+    sequence::{delimited, preceded, tuple},
 };
 
 pub fn verilog_parser<W: Default, N: Default, G: Default, P: Default>(
+    s: &str,
+) -> ParseRes<&str, NetList<W, N, G, P>> {
+    preceded(many0(comment), module_parser)(s)
+}
+
+pub fn module_parser<W: Default, N: Default, G: Default, P: Default>(
     s: &str,
 ) -> ParseRes<&str, NetList<W, N, G, P>> {
     delimited(
@@ -23,6 +31,7 @@ pub fn verilog_parser<W: Default, N: Default, G: Default, P: Default>(
                 many1(port_direction_declare_stmt),
                 many1(instantiate_stmt),
                 many0(wire_declare_stmt),
+                many0(comment),
             )),
         )),
         ws(tag("endmodule")),
@@ -30,17 +39,13 @@ pub fn verilog_parser<W: Default, N: Default, G: Default, P: Default>(
     .map(|(s, d)| {
         let mut netlist = NetList::default();
         netlist.name = d.0.to_string();
+
         // create new pin
         for p in (d.2).0 {
-            let pname: &str = p.1;
             // node,pin,net index
-            let node_id = netlist.nodes.len();
-            let pin_id = netlist.pins.len();
-            let net_id = netlist.nets.len();
-            // create new net,pin,node record in hashmap
-            // pin net name eq pin name
-            netlist.net_map.insert(pname.to_string(), net_id);
-            netlist.pin_map.insert(pname.to_string(), pin_id);
+            let mut node_id = netlist.nodes.len();
+            let mut pin_id = netlist.pins.len();
+            let mut net_id = netlist.nets.len();
 
             match p.0 {
                 // Input pin means that
@@ -48,46 +53,104 @@ pub fn verilog_parser<W: Default, N: Default, G: Default, P: Default>(
                 // (2) new input pin wih created node will be created
                 // (3) new net with created node will be created
                 PinDirection::Input => {
-                    netlist.nodes.push(Node {
-                        name: pname.to_string(),
-                        from: DriveLoad::Pin(pin_id),
-                        to: DriveLoad::Net(net_id),
-                        data: N::default(),
-                    });
-                    netlist.pins.push(Pin {
-                        name: pname.to_string(),
-                        direction: p.0,
-                        node: node_id,
-                        ..Default::default()
-                    });
-                    netlist.nets.push(Net {
-                        name: pname.to_string(), // pname is also net name, according to verilog standard
-                        nodes: vec![node_id],
-                        ..Default::default()
-                    });
+                    for pname in &p.2 {
+                        let mut new_pin = Pin {
+                            name: pname.to_string(),
+                            bitwidth: 1,
+                            ..Default::default() // default as Input direction
+                        };
+                        if let Some((msb, lsb)) = p.1 {
+                            new_pin.bitwidth = msb - lsb + 1;
+                            for bit in lsb..=msb {
+                                let net_name = &format!("{}[{}]", pname, bit);
+                                netlist.nets.push(Net {
+                                    name: net_name.to_string(),
+                                    nodes: vec![node_id],
+                                    ..Default::default()
+                                });
+                                netlist.net_map.insert(net_name.to_string(), net_id);
+                                netlist.nodes.push(Node {
+                                    name: net_name.to_string(),
+                                    from: DriveLoad::Pin(pin_id),
+                                    to: DriveLoad::Net(net_id),
+                                    data: N::default(),
+                                });
+                                new_pin.node.push(node_id);
+                                node_id += 1;
+                                pin_id += 1;
+                                net_id += 1;
+                            }
+                        } else {
+                            new_pin.node.push(node_id);
+                            netlist.nets.push(Net {
+                                name: pname.to_string(), // pname is also net name, according to verilog standard
+                                nodes: vec![node_id],
+                                ..Default::default()
+                            });
+                            netlist.net_map.insert(pname.to_string(), net_id);
+                            netlist.nodes.push(Node {
+                                name: pname.to_string(),
+                                from: DriveLoad::Pin(pin_id),
+                                to: DriveLoad::Net(net_id),
+                                data: N::default(),
+                            });
+                        }
+                        netlist.pins.push(new_pin);
+                        netlist.pin_map.insert(pname.to_string(), pin_id);
+                    }
                 }
                 // Output pin means that
                 // (1) new node with pin as load will be created
                 // (2) new output pin with created node will be created
                 // (3) new net that same name with pin name will be created, with created node
                 PinDirection::Output => {
-                    netlist.nodes.push(Node {
-                        name: pname.to_string(),
-                        from: DriveLoad::Net(net_id),
-                        to: DriveLoad::Pin(pin_id),
-                        data: N::default(),
-                    });
-                    netlist.pins.push(Pin {
-                        name: pname.to_string(),
-                        direction: p.0,
-                        node: node_id,
-                        ..Default::default()
-                    });
-                    netlist.nets.push(Net {
-                        name: pname.to_string(), // pname is also net name, according to verilog standard
-                        nodes: vec![node_id],
-                        ..Default::default()
-                    });
+                    for pname in &p.2 {
+                        let mut new_pin = Pin {
+                            name: pname.to_string(),
+                            bitwidth: 1,
+                            direction: PinDirection::Output,
+                            ..Default::default()
+                        };
+                        if let Some((msb, lsb)) = p.1 {
+                            new_pin.bitwidth = msb - lsb + 1;
+                            for bit in lsb..=msb {
+                                let net_name = &format!("{}[{}]", pname, bit);
+                                netlist.nets.push(Net {
+                                    name: net_name.to_string(),
+                                    nodes: vec![node_id],
+                                    ..Default::default()
+                                });
+                                netlist.net_map.insert(net_name.to_string(), net_id);
+                                netlist.nodes.push(Node {
+                                    name: net_name.to_string(),
+                                    from: DriveLoad::Net(net_id),
+                                    to: DriveLoad::Pin(pin_id),
+                                    data: N::default(),
+                                });
+                                new_pin.node.push(node_id);
+                                node_id += 1;
+                                pin_id += 1;
+                                net_id += 1;
+                            }
+                        } else {
+                            // when pin bitwidth == 1, pin_name = net_name = node_name
+                            new_pin.node.push(node_id);
+                            netlist.nets.push(Net {
+                                name: pname.to_string(),
+                                nodes: vec![node_id],
+                                ..Default::default()
+                            });
+                            netlist.net_map.insert(pname.to_string(), net_id);
+                            netlist.nodes.push(Node {
+                                name: pname.to_string(),
+                                from: DriveLoad::Net(net_id),
+                                to: DriveLoad::Pin(pin_id),
+                                data: N::default(),
+                            });
+                        }
+                        netlist.pins.push(new_pin);
+                        netlist.pin_map.insert(pname.to_string(), pin_id);
+                    }
                 }
             }
         }

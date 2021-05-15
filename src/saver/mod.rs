@@ -19,8 +19,20 @@ impl<W: Default, N: Default, G: Default, P: Default> NetList<W, N, G, P> {
         )?;
         for p in &self.pins {
             match p.direction {
-                PinDirection::Input => write!(f, "input {};\n", p.name)?,
-                PinDirection::Output => write!(f, "output {};\n", p.name)?,
+                PinDirection::Input => {
+                    if p.bitwidth == 1 {
+                        write!(f, "input {};\n", p.name)?;
+                    } else {
+                        write!(f, "input [{}:0] {};\n", p.bitwidth - 1, p.name)?;
+                    }
+                }
+                PinDirection::Output => {
+                    if p.bitwidth == 1 {
+                        write!(f, "output {};\n", p.name)?;
+                    } else {
+                        write!(f, "output [{}:0] {};\n", p.bitwidth - 1, p.name)?;
+                    }
+                }
             }
         }
         let mut p2n_list = Vec::new();

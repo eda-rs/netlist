@@ -48,7 +48,8 @@ pub struct Node<N> {
 pub struct Pin<P> {
     pub name: String,
     pub direction: PinDirection,
-    pub node: NodeIndex,
+    pub bitwidth: u32,
+    pub node: Vec<NodeIndex>,
     pub data: P,
 }
 
