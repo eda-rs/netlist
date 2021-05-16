@@ -7,19 +7,19 @@ type NodeIndex = usize;
 
 #[derive(Default)]
 pub struct NetList<W, N, G, P> {
-    pub(crate) name: String, // netlist name or module name
-    pub(crate) nets: Vec<Net<W>>,
-    pub(crate) gates: Vec<Gate<G>>,
-    pub(crate) pins: Vec<Pin<P>>,
-    pub(crate) nodes: Vec<Node<N>>, // internal node, or gate pin
+    pub name: String, // netlist name or module name
+    pub nets: Vec<Net<W>>,
+    pub gates: Vec<Gate<G>>,
+    pub pins: Vec<Pin<P>>,
+    pub nodes: Vec<Node<N>>, // internal node, or gate pin
     //fast access
-    pub(crate) net_map: HashMap<String, NetIndex>,
-    pub(crate) gate_map: HashMap<String, GateIndex>,
-    pub(crate) pin_map: HashMap<String, PinIndex>,
+    pub net_map: HashMap<String, NetIndex>,
+    pub gate_map: HashMap<String, GateIndex>,
+    pub pin_map: HashMap<String, PinIndex>,
 }
 
 #[derive(Default)]
-pub(crate) struct Net<W> {
+pub struct Net<W> {
     pub name: String,
     pub nodes: Vec<NodeIndex>,
     pub data: W,
