@@ -1,8 +1,4 @@
-use crate::{
-    error::NetListError,
-    model::{DriveLoad, PinDirection},
-    NetList,
-};
+use crate::{model::PinDirection, NetList};
 use std::{error, fs::File, io::Write};
 impl<W: Default, N: Default, G: Default, P: Default> NetList<W, N, G, P> {
     pub fn netlist2verilog(&self, file: &str) -> Result<(), Box<dyn error::Error>> {
@@ -37,15 +33,9 @@ impl<W: Default, N: Default, G: Default, P: Default> NetList<W, N, G, P> {
         }
         let mut p2n_list = Vec::new();
         for g in &self.gates {
-            for n_idx in &g.nodes {
-                let node = &self.nodes[*n_idx];
-                if let DriveLoad::Net(idx) = node.from {
-                    p2n_list.push((&node.name, &self.nets[idx].name));
-                } else if let DriveLoad::Net(idx) = node.to {
-                    p2n_list.push((&node.name, &self.nets[idx].name));
-                } else {
-                    return Err(Box::new(NetListError::SeverError));
-                }
+            for node_idx in self.get_gate_node(&g.name)?.into_iter() {
+                let node = &self.nodes[node_idx];
+                p2n_list.push((&node.name, &self.nets[node.connection].name));
             }
             write!(
                 f,
