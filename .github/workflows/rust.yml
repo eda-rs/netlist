@@ -10,7 +10,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions-rs/cargo@v1.0.1
-      - name: rust test
-        run: cargo test parse_verilog
-      - name: rust build
-        run: cargo build
+      - run: cargo test parse_verilog
+      - run: cargo build
