@@ -33,7 +33,11 @@ pub fn port_map_stmt(s: &str) -> ParseRes<&str, Vec<&str>> {
     context(
         "Port Map Statement",
         terminated(
-            delimited(tag("("), separated_list1(tag(","), identifier), tag(")")),
+            delimited(
+                tag("("),
+                separated_list1(ws(tag(",")), identifier),
+                tag(")"),
+            ),
             ws(tag(";")),
         ),
     )(s)
@@ -88,7 +92,11 @@ pub fn wire_declare_stmt(s: &str) -> ParseRes<&str, (Option<(u32, u32)>, Vec<&st
 // wire [11:0] a;
 // input [2:0] b;
 pub fn bitwidth(s: &str) -> ParseRes<&str, (u32, u32)> {
-    delimited(tag("["), separated_pair(number, tag(":"), number), tag("]"))(s)
+    delimited(
+        ws(tag("[")),
+        separated_pair(number, ws(tag(":")), number),
+        ws(tag("]")),
+    )(s)
 }
 
 // verilog comment statment
