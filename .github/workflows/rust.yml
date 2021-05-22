@@ -2,13 +2,18 @@ name: rust
 on:
   push:
     branches: [ main ]
+    paths_ignore: "README.md"
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
 jobs:
-  build:
+  build_and_test:
+    name: rust project
     runs-on: ubuntu-latest
     steps:
-      - uses: actions-rs/cargo@v1.0.1
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - run: cargo build --release
       - run: cargo test parse_verilog
-      - run: cargo build
+      
