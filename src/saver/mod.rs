@@ -36,6 +36,10 @@ impl<W: Default, N: Default, G: Default, P: Default> NetList<W, N, G, P> {
         }
         let mut p2n_list = Vec::new();
         for g in &self.gates {
+            // insert first node
+            let node = &self.nodes[g.first_node];
+            p2n_list.push((&node.name, &self.nets[node.connection].name));
+            // insert second node and so on
             for node_idx in self.get_gate_node(&g.name)?.into_iter() {
                 let node = &self.nodes[node_idx];
                 p2n_list.push((&node.name, &self.nets[node.connection].name));
