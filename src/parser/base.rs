@@ -30,18 +30,25 @@ pub fn tstring(s: &str) -> ParseRes<&str, &str> {
     )))(s)
 }
 
-/// module name identifier
-/// this parser allow hierachical representation of module name
-pub fn identifier(s: &str) -> ParseRes<&str, &str> {
+fn identifier(input: &str) -> ParseRes<&str, &str> {
+    recognize(pair(
+        alt((alpha1, tag("_"))),
+        many0(alt((alphanumeric1, tag("_")))),
+    ))(input)
+}
+
+/// hierachical identifier
+/// this parser allow hierachical representation of module name, net name or pin name
+pub fn hier_identifier(s: &str) -> ParseRes<&str, &str> {
     ws(recognize(pair(
-        pair(opt(tag("\\")), tstring),
+        pair(opt(tag("\\")), identifier),
         many0(alt((
             recognize(many1(tuple((tag("\\\\["), digit1, tag("\\\\]"))))),
             recognize(many1(tuple((tag("\\["), digit1, tag("\\]"))))),
             recognize(many1(tuple((tag("["), digit1, tag("]"))))),
-            recognize(pair(tag("\\\\/"), tstring)),
-            recognize(pair(tag("\\/"), tstring)),
-            recognize(pair(tag("/"), tstring)),
+            recognize(pair(tag("\\\\/"), identifier)),
+            recognize(pair(tag("\\/"), identifier)),
+            recognize(pair(tag("/"), identifier)),
         ))),
     )))(s)
 }

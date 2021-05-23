@@ -1,4 +1,4 @@
-use super::base::{identifier, number, tstring, ws};
+use super::base::{hier_identifier, number, tstring, ws};
 use crate::model::PinDirection;
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, tag};
@@ -17,7 +17,7 @@ pub fn instantiate_stmt(s: &str) -> ParseRes<&str, (&str, &str, Vec<BindingT>)> 
         terminated(
             tuple((
                 tstring,
-                identifier,
+                hier_identifier,
                 delimited(
                     tag("("),
                     separated_list1(ws(tag(",")), binding_parser),
@@ -35,7 +35,7 @@ pub fn port_map_stmt(s: &str) -> ParseRes<&str, Vec<&str>> {
         terminated(
             delimited(
                 tag("("),
-                separated_list1(ws(tag(",")), identifier),
+                separated_list1(ws(tag(",")), hier_identifier),
                 tag(")"),
             ),
             ws(tag(";")),
@@ -52,7 +52,7 @@ pub fn port_direction_declare_stmt(
             map(
                 delimited(
                     ws(tag("input")),
-                    tuple((opt(bitwidth), separated_list1(tag(","), identifier))),
+                    tuple((opt(bitwidth), separated_list1(tag(","), hier_identifier))),
                     ws(tag(";")),
                 ),
                 |d| (PinDirection::Input, d.0, d.1),
@@ -60,7 +60,7 @@ pub fn port_direction_declare_stmt(
             map(
                 delimited(
                     ws(tag("output")),
-                    tuple((opt(bitwidth), separated_list1(tag(","), identifier))),
+                    tuple((opt(bitwidth), separated_list1(tag(","), hier_identifier))),
                     ws(tag(";")),
                 ),
                 |d| (PinDirection::Output, d.0, d.1),
@@ -80,7 +80,7 @@ pub fn wire_declare_stmt(s: &str) -> ParseRes<&str, (Option<(u32, u32)>, Vec<&st
         "Wire Declare Statement",
         delimited(
             ws(tag("wire")),
-            tuple((opt(bitwidth), separated_list1(tag(","), identifier))),
+            tuple((opt(bitwidth), separated_list1(tag(","), hier_identifier))),
             ws(tag(";")),
         ),
     )(s)
@@ -114,7 +114,7 @@ pub fn comment(s: &str) -> ParseRes<&str, ()> {
 fn binding_parser(s: &str) -> ParseRes<&str, BindingT> {
     tuple((
         preceded(ws(tag(".")), tstring),
-        delimited(ws(tag("(")), identifier, ws(tag(")"))),
+        delimited(ws(tag("(")), hier_identifier, ws(tag(")"))),
     ))(s)
 }
 
