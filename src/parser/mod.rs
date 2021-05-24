@@ -1,7 +1,4 @@
-use nom::{
-    error::{convert_error, VerboseError},
-    Err, IResult,
-};
+use nom::{error::VerboseError, IResult};
 
 mod base;
 mod subparser;
@@ -10,30 +7,14 @@ mod verilog_parser;
 pub type ParseRes<T, U> = IResult<T, U, VerboseError<T>>;
 
 use super::model::NetList;
-use std::{
-    io::{Error, ErrorKind},
-    str::FromStr,
-};
 
+use crate::NResult;
+use std::{fs, path::Path};
 use verilog_parser::verilog_parser;
 
-impl<W: Default, N: Default, G: Default, P: Default> FromStr for NetList<W, N, G, P> {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match verilog_parser(s) {
-            Ok((_, u)) => Ok(u),
-            Err(Err::Error(e)) => {
-                println!("[VerilogParser] `VerboseError`:\n{}", convert_error(s, e));
-                Err(Error::new(ErrorKind::InvalidData, "Invalid verilog File"))
-            }
-            _ => Err(Error::new(ErrorKind::InvalidData, "Invalid verilog File")),
-        }
-    }
-}
-
-use std::{error, fs, path::Path};
 impl<W: Default, N: Default, G: Default, P: Default> NetList<W, N, G, P> {
-    pub fn verilog2netlist<Pth: AsRef<Path>>(file: Pth) -> Result<Self, Box<dyn error::Error>> {
-        Ok(fs::read_to_string(file)?.parse::<NetList<W, N, G, P>>()?)
+    pub fn verilog2netlist<Pth: AsRef<Path>>(file: Pth) -> NResult<Self> {
+        let buff = fs::read_to_string(file)?;
+        verilog_parser(&buff)
     }
 }

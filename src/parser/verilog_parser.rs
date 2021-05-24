@@ -5,18 +5,27 @@ use super::{
     },
     ParseRes,
 };
-use crate::model::{Gate, Net, NetList, Node, NodeOwner, Pin, PinDirection};
+use crate::{
+    error::NetListError,
+    model::{Gate, Net, NetList, Node, NodeOwner, Pin, PinDirection},
+    NResult,
+};
 use nom::{
     branch::permutation,
     bytes::complete::tag,
+    error::convert_error,
     multi::{many0, many1},
     sequence::{delimited, preceded, tuple},
+    Finish,
 };
 
 pub fn verilog_parser<W: Default, N: Default, G: Default, P: Default>(
     s: &str,
-) -> ParseRes<&str, NetList<W, N, G, P>> {
-    preceded(many0(comment), module_parser)(s)
+) -> NResult<NetList<W, N, G, P>> {
+    match preceded(many0(comment), module_parser)(s).finish() {
+        Ok(d) => Ok(d.1),
+        Err(e) => Err(NetListError::ParseErr(convert_error(s, e))),
+    }
 }
 
 pub fn module_parser<W: Default, N: Default, G: Default, P: Default>(

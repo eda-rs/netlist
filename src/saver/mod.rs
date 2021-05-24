@@ -1,10 +1,7 @@
-use crate::{model::PinDirection, NetList};
-use std::{error, fs::File, io::Write, path::Path};
+use crate::{model::PinDirection, NResult, NetList};
+use std::{fs::File, io::Write, path::Path};
 impl<W: Default, N: Default, G: Default, P: Default> NetList<W, N, G, P> {
-    pub fn netlist2verilog<Pth: AsRef<Path>>(
-        &self,
-        file: Pth,
-    ) -> Result<(), Box<dyn error::Error>> {
+    pub fn netlist2verilog<Pth: AsRef<Path>>(&self, file: Pth) -> NResult<()> {
         let mut f = File::create(file)?;
         write!(f, "module {}\n", self.name)?;
         write!(

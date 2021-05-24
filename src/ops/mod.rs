@@ -1,4 +1,4 @@
-use crate::error::NetListError;
+use crate::error::OpsErr;
 use crate::model::{Gate, Net, NetList, Node, NodeGraph, Pin};
 use crate::NResult;
 
@@ -7,20 +7,14 @@ impl<W: Default, N: Default, G: Default, P: Default> NetList<W, N, G, P> {
     pub fn get_net(&self, name: &str) -> NResult<&Net<W>> {
         match self.net_map.get(name) {
             Some(i) => Ok(&self.nets[*i]),
-            None => Err(Box::new(NetListError::NetNotFound(
-                name.to_string(),
-                self.name.clone(),
-            ))),
+            None => Err(OpsErr::NetNotFound(name.to_string(), self.name.clone()).into()),
         }
     }
     // get mutable internal net data by name
     pub fn get_mut_net(&mut self, name: &str) -> NResult<&mut Net<W>> {
         match self.net_map.get(name) {
             Some(i) => Ok(&mut self.nets[*i]),
-            None => Err(Box::new(NetListError::NetNotFound(
-                name.to_string(),
-                self.name.clone(),
-            ))),
+            None => Err(OpsErr::NetNotFound(name.to_string(), self.name.clone()).into()),
         }
     }
 
@@ -28,10 +22,7 @@ impl<W: Default, N: Default, G: Default, P: Default> NetList<W, N, G, P> {
     pub fn get_gate(&self, name: &str) -> NResult<&Gate<G>> {
         match self.gate_map.get(name) {
             Some(i) => Ok(&self.gates[*i]),
-            None => Err(Box::new(NetListError::GateNotFound(
-                name.to_string(),
-                self.name.clone(),
-            ))),
+            None => Err(OpsErr::GateNotFound(name.to_string(), self.name.clone()).into()),
         }
     }
 
@@ -39,10 +30,7 @@ impl<W: Default, N: Default, G: Default, P: Default> NetList<W, N, G, P> {
     pub fn get_mut_gate(&mut self, name: &str) -> NResult<&mut Gate<G>> {
         match self.gate_map.get(name) {
             Some(i) => Ok(&mut self.gates[*i]),
-            None => Err(Box::new(NetListError::GateNotFound(
-                name.to_string(),
-                self.name.clone(),
-            ))),
+            None => Err(OpsErr::GateNotFound(name.to_string(), self.name.clone()).into()),
         }
     }
 
@@ -50,10 +38,7 @@ impl<W: Default, N: Default, G: Default, P: Default> NetList<W, N, G, P> {
     pub fn get_pin(&self, name: &str) -> NResult<&Pin<P>> {
         match self.pin_map.get(name) {
             Some(i) => Ok(&self.pins[*i]),
-            None => Err(Box::new(NetListError::PinNotFound(
-                name.to_string(),
-                self.name.clone(),
-            ))),
+            None => Err(OpsErr::PinNotFound(name.to_string(), self.name.clone()).into()),
         }
     }
 
@@ -61,10 +46,7 @@ impl<W: Default, N: Default, G: Default, P: Default> NetList<W, N, G, P> {
     pub fn get_mut_pin(&mut self, name: &str) -> NResult<&mut Pin<P>> {
         match self.pin_map.get(name) {
             Some(i) => Ok(&mut self.pins[*i]),
-            None => Err(Box::new(NetListError::PinNotFound(
-                name.to_string(),
-                self.name.clone(),
-            ))),
+            None => Err(OpsErr::PinNotFound(name.to_string(), self.name.clone()).into()),
         }
     }
 
@@ -77,12 +59,7 @@ impl<W: Default, N: Default, G: Default, P: Default> NetList<W, N, G, P> {
                 };
                 Ok(successors)
             }
-            None => {
-                return Err(Box::new(NetListError::NetNotFound(
-                    name.to_string(),
-                    self.name.clone(),
-                )))
-            }
+            None => return Err(OpsErr::NetNotFound(name.to_string(), self.name.clone()).into()),
         }
     }
 
@@ -95,12 +72,7 @@ impl<W: Default, N: Default, G: Default, P: Default> NetList<W, N, G, P> {
                 };
                 Ok(successors)
             }
-            None => {
-                return Err(Box::new(NetListError::NetNotFound(
-                    name.to_string(),
-                    self.name.clone(),
-                )))
-            }
+            None => return Err(OpsErr::NetNotFound(name.to_string(), self.name.clone()).into()),
         }
     }
 
@@ -114,12 +86,7 @@ impl<W: Default, N: Default, G: Default, P: Default> NetList<W, N, G, P> {
                 }
                 Ok(result)
             }
-            None => {
-                return Err(Box::new(NetListError::NetNotFound(
-                    name.to_string(),
-                    self.name.clone(),
-                )))
-            }
+            None => return Err(OpsErr::NetNotFound(name.to_string(), self.name.clone()).into()),
         }
     }
 }

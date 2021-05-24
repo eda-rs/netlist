@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use std::error::Error;
+
 use std::result::Result;
 mod error;
 pub mod model;
@@ -7,6 +7,7 @@ mod ops;
 mod parser;
 mod saver;
 
+pub use error::NetListError;
 pub use model::NetList;
 
-pub type NResult<T> = Result<T, Box<dyn Error>>;
+pub(crate) type NResult<T> = Result<T, NetListError>;
