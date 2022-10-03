@@ -6,16 +6,23 @@ pub type PinIndex = usize;
 type NodeIndex = usize;
 
 #[derive(Default)]
-pub struct NetList<W, N, G, P> {
+pub struct NetList<W, N, G, B, P> {
     pub name: String, // netlist name or module name
     pub nets: Vec<Net<W>>,
     pub gates: Vec<Gate<G>>,
+    pub blocks: Vec<Block<B>>,
     pub pins: Vec<Pin<P>>,
     pub nodes: Vec<Node<N>>, // internal node, or gate pin
     //fast access
     pub net_map: HashMap<String, NetIndex>,
     pub gate_map: HashMap<String, GateIndex>,
     pub pin_map: HashMap<String, PinIndex>,
+}
+
+impl<W: Default, N: Default, G: Default, B: Default, P: Default> NetList<W, N, G, B, P> {
+    pub fn new() -> Self {
+        NetList::default()
+    }
 }
 
 #[derive(Default)]
@@ -25,6 +32,7 @@ pub struct Net<W> {
     pub data: W,
 }
 
+#[derive(PartialEq)]
 pub enum PinDirection {
     Input,
     Output,
@@ -55,12 +63,12 @@ pub struct Pin<P> {
     pub data: P,
 }
 
-pub struct NodeGraph<'a, W, N, G, P> {
-    pub netlist: &'a NetList<W, N, G, P>,
+pub struct NodeGraph<'a, W, N, G, B, P> {
+    pub netlist: &'a NetList<W, N, G, B, P>,
     pub current_node_idx: NodeIndex,
 }
 
-impl<'a, W, N, G, P> Iterator for NodeGraph<'a, W, N, G, P> {
+impl<'a, W, N, G, B, P> Iterator for NodeGraph<'a, W, N, G, B, P> {
     type Item = NodeIndex;
     fn next(&mut self) -> Option<NodeIndex> {
         match self.netlist.nodes[self.current_node_idx].next_node {
@@ -71,6 +79,12 @@ impl<'a, W, N, G, P> Iterator for NodeGraph<'a, W, N, G, P> {
             }
         }
     }
+}
+
+#[derive(Default)]
+pub struct Block<B> {
+    pub gates: Vec<GateIndex>,
+    pub data: B,
 }
 
 #[derive(Default)]

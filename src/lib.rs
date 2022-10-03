@@ -8,6 +8,6 @@ mod parser;
 mod saver;
 
 pub use error::NetListError;
-pub use model::NetList;
+pub use model::{NetList, PinDirection};
 
 pub(crate) type NResult<T> = Result<T, NetListError>;

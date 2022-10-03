@@ -19,18 +19,18 @@ use nom::{
     Finish,
 };
 
-pub fn verilog_parser<W: Default, N: Default, G: Default, P: Default>(
+pub fn verilog_parser<W: Default, N: Default, G: Default, B: Default, P: Default>(
     s: &str,
-) -> NResult<NetList<W, N, G, P>> {
+) -> NResult<NetList<W, N, G, B, P>> {
     match preceded(many0(comment), module_parser)(s).finish() {
         Ok(d) => Ok(d.1),
         Err(e) => Err(NetListError::ParseErr(convert_error(s, e))),
     }
 }
 
-pub fn module_parser<W: Default, N: Default, G: Default, P: Default>(
+pub fn module_parser<W: Default, N: Default, G: Default, B: Default, P: Default>(
     s: &str,
-) -> ParseRes<&str, NetList<W, N, G, P>> {
+) -> ParseRes<&str, NetList<W, N, G, B, P>> {
     delimited(
         ws(tag("module")),
         tuple((
