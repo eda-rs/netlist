@@ -7,7 +7,7 @@ description = "generic netlist data structure for VLSI design"
 repository = "https://github.com/eda-rs/netlist"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
-keywords = ["eda","data structure","graph"]
+keywords = ["eda","graph"]
 exclude = [
     "testcases/*",
     "tests/*",
