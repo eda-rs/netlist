@@ -4,14 +4,12 @@ version = "0.1.0"
 authors = ["Eric Hsu <xuzhenyutc@icloud.com>"]
 edition = "2018"
 descriptions = ["generic netlist data structure for VLSI design"]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+exclude = [
+    "testcases/*",
+    "tests/*",
+    "examples/*"
+]
 
 [dependencies]
 nom = "6.0"
 thiserror = "1.0"
-
-#[workspace]
-#members = [
-#   "examples/weighted_net"
-#]
