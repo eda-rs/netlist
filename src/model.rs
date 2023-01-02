@@ -3,6 +3,7 @@ use std::{collections::HashMap, iter::Iterator};
 pub type NetIndex = usize;
 pub type GateIndex = usize;
 pub type PinIndex = usize;
+pub type BlockIndex = usize;
 type NodeIndex = usize;
 
 #[derive(Default)]
