@@ -3,9 +3,11 @@ name = "netlist"
 version = "0.1.5"
 authors = ["Eric Hsu <xuzhenyutc@icloud.com>"]
 edition = "2018"
-descriptions = ["generic netlist data structure for VLSI design"]
+description = ["generic netlist data structure for VLSI design"]
 repository = "https://github.com/eda-rs/netlist"
 readme = "README.md"
+license = "MIT OR Apache-2.0"
+keywords = ["eda","data structure","graph"]
 exclude = [
     "testcases/*",
     "tests/*",
