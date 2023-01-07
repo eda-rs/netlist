@@ -30,7 +30,14 @@ impl<W: Default, N: Default, G: Default, B: Default, P: Default> NetList<W, N, G
 pub struct Net<W> {
     pub name: String,
     pub connection: Vec<NodeIndex>,
+    pub bitwidth: u32,
     pub data: W,
+}
+
+impl<W: Default> Net<W> {
+    pub fn new() -> Self {
+        Self::default()
+    }
 }
 
 #[derive(PartialEq)]
@@ -64,6 +71,12 @@ pub struct Pin<P> {
     pub data: P,
 }
 
+impl<P: Default> Pin<P> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
 pub struct NodeGraph<'a, W, N, G, B, P> {
     pub netlist: &'a NetList<W, N, G, B, P>,
     pub current_node_idx: NodeIndex,
@@ -88,12 +101,24 @@ pub struct Block<B> {
     pub data: B,
 }
 
+impl<B: Default> Block<B> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
 #[derive(Default)]
 pub struct Gate<G> {
     pub name: String,
     pub model: String,
     pub first_node: NodeIndex,
     pub data: G,
+}
+
+impl<G: Default> Gate<G> {
+    pub fn new() -> Self {
+        Self::default()
+    }
 }
 
 impl Default for PinDirection {

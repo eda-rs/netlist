@@ -1,6 +1,6 @@
 [package]
 name = "netlist"
-version = "0.1.5"
+version = "0.1.6"
 authors = ["Eric Hsu <xuzhenyutc@icloud.com>"]
 edition = "2018"
 description = "generic netlist data structure for VLSI design"
@@ -15,5 +15,5 @@ exclude = [
 ]
 
 [dependencies]
-nom = "6.0"
+nom = "7.0"
 thiserror = "1.0"
