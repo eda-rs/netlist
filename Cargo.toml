@@ -15,5 +15,5 @@ exclude = [
 ]
 
 [dependencies]
-nom = "6.0"
+nom = "7.0"
 thiserror = "1.0"
