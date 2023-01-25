@@ -1,6 +1,6 @@
 [package]
 name = "netlist"
-version = "0.1.7"
+version = "0.1.8"
 authors = ["Eric Hsu <xuzhenyutc@icloud.com>"]
 edition = "2018"
 description = "generic netlist data structure for VLSI design"
