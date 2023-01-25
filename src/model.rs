@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::{collections::HashMap, iter::Iterator};
 
 pub type NetIndex = usize;
@@ -6,7 +7,7 @@ pub type PinIndex = usize;
 pub type BlockIndex = usize;
 type NodeIndex = usize;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct NetList<W, N, G, B, P> {
     pub name: String, // netlist name or module name
     pub nets: Vec<Net<W>>,
@@ -20,26 +21,33 @@ pub struct NetList<W, N, G, B, P> {
     pub pin_map: HashMap<String, PinIndex>,
 }
 
-impl<W: Default, N: Default, G: Default, B: Default, P: Default> NetList<W, N, G, B, P> {
+impl<
+        W: Default + Debug,
+        N: Default + Debug,
+        G: Default + Debug,
+        B: Default + Debug,
+        P: Default + Debug,
+    > NetList<W, N, G, B, P>
+{
     pub fn new() -> Self {
         NetList::default()
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Net<W> {
     pub name: String,
     pub connection: Vec<NodeIndex>,
     pub data: W,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum PinDirection {
     Input,
     Output,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum NodeOwner {
     GateInput(GateIndex),
     GateOutput(GateIndex),
@@ -47,6 +55,7 @@ pub enum NodeOwner {
     PinOutput(PinIndex),
 }
 
+#[derive(Debug)]
 pub struct Node<N> {
     pub name: String, // pin name
     pub owner: NodeOwner,
@@ -55,7 +64,7 @@ pub struct Node<N> {
     pub next_node: Option<NodeIndex>,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Pin<P> {
     pub name: String,
     pub direction: PinDirection,
@@ -82,13 +91,13 @@ impl<'a, W, N, G, B, P> Iterator for NodeGraph<'a, W, N, G, B, P> {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Block<B> {
     pub gates: Vec<GateIndex>,
     pub data: B,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Gate<G> {
     pub name: String,
     pub model: String,
