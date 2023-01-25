@@ -37,6 +37,7 @@ impl<
 #[derive(Default, Debug)]
 pub struct Net<W> {
     pub name: String,
+    pub bitwidth: u32,
     pub connection: Vec<NodeIndex>,
     pub data: W,
 }
