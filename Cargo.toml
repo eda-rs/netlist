@@ -1,8 +1,8 @@
 [package]
 name = "netlist"
-version = "0.1.9"
+version = "0.1.10"
 authors = ["Eric Hsu <xuzhenyutc@icloud.com>"]
-edition = "2018"
+edition = "2021"
 description = "generic netlist data structure for VLSI design"
 repository = "https://github.com/eda-rs/netlist"
 readme = "README.md"
