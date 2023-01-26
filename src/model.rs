@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt::{self, Debug};
 use std::{collections::HashMap, iter::Iterator};
 
 pub type NetIndex = usize;
@@ -7,7 +7,7 @@ pub type PinIndex = usize;
 pub type BlockIndex = usize;
 type NodeIndex = usize;
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct NetList<W, N, G, B, P> {
     pub name: String, // netlist name or module name
     pub nets: Vec<Net<W>>,
@@ -19,6 +19,33 @@ pub struct NetList<W, N, G, B, P> {
     pub net_map: HashMap<String, NetIndex>,
     pub gate_map: HashMap<String, GateIndex>,
     pub pin_map: HashMap<String, PinIndex>,
+}
+
+impl<
+        W: Default + Debug,
+        N: Default + Debug,
+        G: Default + Debug,
+        B: Default + Debug,
+        P: Default + Debug,
+    > Debug for NetList<W, N, G, B, P>
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "netlist name: {}\n", self.name)?;
+        f.debug_list().entries(self.nets.iter()).finish()?;
+        f.write_str("\n")?;
+        f.debug_list().entries(self.gates.iter()).finish()?;
+        f.write_str("\n")?;
+        f.debug_list().entries(self.blocks.iter()).finish()?;
+        f.write_str("\n")?;
+        f.debug_list().entries(self.pins.iter()).finish()?;
+        f.write_str("\n")?;
+        f.debug_list().entries(self.net_map.iter()).finish()?;
+        f.write_str("\n")?;
+        f.debug_list().entries(self.gate_map.iter()).finish()?;
+        f.write_str("\n")?;
+        f.debug_list().entries(self.pin_map.iter()).finish()?;
+        f.write_str("\n")
+    }
 }
 
 impl<
