@@ -56,7 +56,7 @@ pub fn hier_identifier(s: &str) -> ParseRes<&str, &str> {
 // // unsigned integer number
 // // ie, 100, 350
 pub fn number(input: &str) -> ParseRes<&str, u32> {
-    ws(map_res(recognize(digit1), |res: &str| u32::from_str(res)))(input)
+    ws(map_res(recognize(digit1), u32::from_str))(input)
 }
 #[cfg(test)]
 mod test {

@@ -1,5 +1,7 @@
 use std::fmt::{self, Debug};
 use std::{collections::HashMap, iter::Iterator};
+use serde::{Deserialize, Serialize};
+
 
 pub type NetIndex = usize;
 pub type GateIndex = usize;
@@ -86,8 +88,9 @@ impl<W: Default + Debug> Debug for Net<W> {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Default,PartialEq, Debug,Serialize, Deserialize)]
 pub enum PinDirection {
+    #[default]
     Input,
     Output,
 }
@@ -109,7 +112,13 @@ pub struct Node<N> {
     pub next_node: Option<NodeIndex>,
 }
 
-#[derive(Default)]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct PortList<P:Default> {
+    pub items: Vec<Pin<P>>,
+}
+
+#[derive(Default,Serialize, Deserialize)]
 pub struct Pin<P> {
     pub name: String,
     pub direction: PinDirection,
@@ -180,8 +189,3 @@ impl<W: Default + Debug> Debug for Gate<W> {
     }
 }
 
-impl Default for PinDirection {
-    fn default() -> Self {
-        PinDirection::Input
-    }
-}

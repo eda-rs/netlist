@@ -8,6 +8,11 @@ pub enum NetListError {
     },
     #[error("Failed to parse verilog\nbecause `{0}`")]
     ParseErr(String),
+    #[error("Failed to parse portlist from xml\nbecause ")]
+    PortListErr{
+        #[from]
+        source: serde_xml_rs::Error,
+    },    
     #[error("Failed to save verilog")]
     SaveErr {
         #[from]

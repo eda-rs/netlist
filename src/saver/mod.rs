@@ -1,15 +1,16 @@
-use crate::{model::PinDirection, NResult, NetList};
+use crate::{model::{PinDirection,PortList}, NResult, NetList};
 use std::{fs::File, io::Write, path::Path};
+use serde::Serialize;
 impl<W: Default, N: Default, G: Default, B: Default, P: Default> NetList<W, N, G, B, P> {
     pub fn netlist2verilog<Pth: AsRef<Path>>(&self, file: Pth) -> NResult<()> {
         let mut f = File::create(file)?;
-        write!(f, "module {}\n", self.name)?;
-        write!(
+        writeln!(f, "module {}", self.name)?;
+        writeln!(
             f,
-            "({});\n",
+            "({});",
             self.pin_map
                 .keys()
-                .map(|x| format!("{}", x))
+                .map(|x| x.to_string())
                 .collect::<Vec<String>>()
                 .join(" , ")
         )?;
@@ -17,16 +18,16 @@ impl<W: Default, N: Default, G: Default, B: Default, P: Default> NetList<W, N, G
             match p.direction {
                 PinDirection::Input => {
                     if p.bitwidth == 1 {
-                        write!(f, "input {};\n", p.name)?;
+                        writeln!(f, "input {};", p.name)?;
                     } else {
-                        write!(f, "input [{}:0] {};\n", p.bitwidth - 1, p.name)?;
+                        writeln!(f, "input [{}:0] {};", p.bitwidth - 1, p.name)?;
                     }
                 }
                 PinDirection::Output => {
                     if p.bitwidth == 1 {
-                        write!(f, "output {};\n", p.name)?;
+                        writeln!(f, "output {};", p.name)?;
                     } else {
-                        write!(f, "output [{}:0] {};\n", p.bitwidth - 1, p.name)?;
+                        writeln!(f, "output [{}:0] {};", p.bitwidth - 1, p.name)?;
                     }
                 }
             }
@@ -37,13 +38,13 @@ impl<W: Default, N: Default, G: Default, B: Default, P: Default> NetList<W, N, G
             let node = &self.nodes[g.first_node];
             p2n_list.push((&node.name, &self.nets[node.connection].name));
             // insert second node and so on
-            for node_idx in self.get_gate_node(&g.name)?.into_iter() {
+            for node_idx in self.get_gate_node(&g.name)? {
                 let node = &self.nodes[node_idx];
                 p2n_list.push((&node.name, &self.nets[node.connection].name));
             }
-            write!(
+            writeln!(
                 f,
-                "{} {} ({});\n",
+                "{} {} ({});",
                 g.model,
                 g.name,
                 p2n_list
@@ -55,7 +56,16 @@ impl<W: Default, N: Default, G: Default, B: Default, P: Default> NetList<W, N, G
             p2n_list.clear();
         }
 
-        write!(f, "endmodule\n")?;
+        writeln!(f, "endmodule")?;
+        Ok(())
+    }
+}
+
+impl<P: Default + Serialize> PortList<P> {
+    pub fn portlist2xml<Pth: AsRef<Path>>(&self, file: Pth) -> NResult<()> {
+        let mut f = File::create(file)?;
+        let buff = serde_xml_rs::to_string(&self)?;
+        write!(f,"{}",&buff)?;
         Ok(())
     }
 }
