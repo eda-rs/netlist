@@ -7,16 +7,18 @@ pub type NetIndex = usize;
 pub type GateIndex = usize;
 pub type PinIndex = usize;
 pub type BlockIndex = usize;
+pub type ScopeIndex = usize;
 type NodeIndex = usize;
 
 #[derive(Default)]
-pub struct NetList<W, N, G, B, P> {
+pub struct NetList<W, N, G, B, P, S> {
     pub name: String, // netlist name or module name
     pub nets: Vec<Net<W>>,
     pub gates: Vec<Gate<G>>,
     pub blocks: Vec<Block<B>>,
     pub pins: Vec<Pin<P>>,
     pub nodes: Vec<Node<N>>, // internal node, or gate pin
+    pub scopes: Vec<Scope<S>>, // support instances
     //fast access
     pub net_map: HashMap<String, NetIndex>,
     pub gate_map: HashMap<String, GateIndex>,
@@ -29,7 +31,8 @@ impl<
         G: Default + Debug,
         B: Default + Debug,
         P: Default + Debug,
-    > Debug for NetList<W, N, G, B, P>
+        S: Default + Debug,
+    > Debug for NetList<W, N, G, B, P, S>
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "nets:")?;
@@ -44,6 +47,9 @@ impl<
         write!(f, "pins:")?;
         f.debug_list().entries(self.pins.iter()).finish()?;
         f.write_str("\n")?;
+        write!(f, "scopes:")?;
+        f.debug_list().entries(self.scopes.iter()).finish()?;
+        f.write_str("\n")?;        
         write!(f, "net_map:")?;
         f.debug_map().entries(self.net_map.iter()).finish()?;
         f.write_str("\n")?;
@@ -62,7 +68,8 @@ impl<
         G: Default + Debug,
         B: Default + Debug,
         P: Default + Debug,
-    > NetList<W, N, G, B, P>
+        S: Default + Debug,
+    > NetList<W, N, G, B, P, S>
 {
     pub fn new() -> Self {
         NetList::default()
@@ -139,12 +146,12 @@ impl<P: Default + Debug> Debug for Pin<P> {
     }
 }
 
-pub struct NodeGraph<'a, W, N, G, B, P> {
-    pub netlist: &'a NetList<W, N, G, B, P>,
+pub struct NodeGraph<'a, W, N, G, B, P, S> {
+    pub netlist: &'a NetList<W, N, G, B, P, S>,
     pub current_node_idx: NodeIndex,
 }
 
-impl<'a, W, N, G, B, P> Iterator for NodeGraph<'a, W, N, G, B, P> {
+impl<'a, W, N, G, B, P, S> Iterator for NodeGraph<'a, W, N, G, B, P, S> {
     type Item = NodeIndex;
     fn next(&mut self) -> Option<NodeIndex> {
         match self.netlist.nodes[self.current_node_idx].next_node {
@@ -184,6 +191,25 @@ impl<W: Default + Debug> Debug for Gate<W> {
         f.debug_struct("Gate")
             .field("name", &self.name)
             .field("model", &self.model)
+            .field("data", &self.data)
+            .finish()
+    }
+}
+
+#[derive(Default)]
+pub struct Scope<S> {
+    pub name: String,
+    pub derive: String, // module name
+    pub subscope: Vec<ScopeIndex>,
+    pub data: S,
+}
+
+impl<S: Default + Debug> Debug for Scope<S> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "\n\t")?;
+        f.debug_struct("Scope")
+            .field("name", &self.name)
+            .field("derive", &self.derive)
             .field("data", &self.data)
             .finish()
     }

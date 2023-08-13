@@ -1,7 +1,7 @@
 use crate::{model::{PinDirection,PortList}, NResult, NetList};
 use std::{fs::File, io::Write, path::Path};
 use serde::Serialize;
-impl<W: Default, N: Default, G: Default, B: Default, P: Default> NetList<W, N, G, B, P> {
+impl<W: Default, N: Default, G: Default, B: Default, P: Default, S: Default> NetList<W, N, G, B, P, S> {
     pub fn netlist2verilog<Pth: AsRef<Path>>(&self, file: Pth) -> NResult<()> {
         let mut f = File::create(file)?;
         writeln!(f, "module {}", self.name)?;

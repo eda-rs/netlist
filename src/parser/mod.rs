@@ -13,7 +13,7 @@ use crate::NResult;
 use std::{fs, path::Path};
 use verilog_parser::verilog_parser;
 
-impl<W: Default, N: Default, G: Default, B: Default, P: Default> NetList<W, N, G, B, P> {
+impl<W: Default, N: Default, G: Default, B: Default, P: Default, S: Default> NetList<W, N, G, B, P, S> {
     pub fn verilog2netlist<Pth: AsRef<Path>>(file: Pth) -> NResult<Self> {
         let buff = fs::read_to_string(file)?;
         verilog_parser(&buff)
