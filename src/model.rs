@@ -8,7 +8,7 @@ pub type GateIndex = usize;
 pub type PinIndex = usize;
 pub type BlockIndex = usize;
 pub type ScopeIndex = usize;
-type NodeIndex = usize;
+pub type NodeIndex = usize;
 
 #[derive(Default)]
 pub struct NetList<W, N, G, B, P, S> {
@@ -201,6 +201,7 @@ pub struct Scope<S> {
     pub name: String,
     pub derive: String, // module name
     pub subscope: Vec<ScopeIndex>,
+    pub scoped_block: Vec<BlockIndex>,
     pub data: S,
 }
 
@@ -210,6 +211,7 @@ impl<S: Default + Debug> Debug for Scope<S> {
         f.debug_struct("Scope")
             .field("name", &self.name)
             .field("derive", &self.derive)
+            .field("scoped_block", &self.scoped_block)
             .field("data", &self.data)
             .finish()
     }

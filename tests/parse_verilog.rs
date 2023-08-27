@@ -15,6 +15,9 @@ pub struct Node {}
 #[derive(Default)]
 pub struct Block {}
 
+#[derive(Default)]
+pub struct Scope {}
+
 fn get_testcase(filename: &str) -> Option<PathBuf> {
     match env::var("CARGO_MANIFEST_DIR") {
         Ok(v) => Some(
@@ -29,11 +32,11 @@ fn get_testcase(filename: &str) -> Option<PathBuf> {
 #[test]
 fn test_parse_verilog_1() {
     let p = get_testcase("s1238_placed.v").unwrap();
-    let _ = NetList::<Net, Component, Block, Port, Node>::verilog2netlist(&p).unwrap();
+    let _ = NetList::<Net, Component, Block, Port, Node,Scope>::verilog2netlist(&p).unwrap();
 }
 
 #[test]
 fn test_parse_verilog_2() {
     let p = get_testcase("Intro_TopNetlist.v").unwrap();
-    let _ = NetList::<Net, Component, Block, Port, Node>::verilog2netlist(&p).unwrap();
+    let _ = NetList::<Net, Component, Block, Port, Node,Scope>::verilog2netlist(&p).unwrap();
 }
