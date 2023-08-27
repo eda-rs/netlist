@@ -202,6 +202,7 @@ pub struct Scope<S> {
     pub derive: String, // module name
     pub subscope: Vec<ScopeIndex>,
     pub scoped_block: Vec<BlockIndex>,
+    pub scoped_net: Vec<NetIndex>,
     pub data: S,
 }
 
