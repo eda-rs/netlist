@@ -102,6 +102,17 @@ pub enum PinDirection {
     Output,
 }
 
+// TODO: support Inout type
+impl From<u8> for PinDirection {
+    fn from(item:u8) -> Self {
+        if item == 0x00 {
+            Self::Input
+        } else {
+            Self::Output
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub enum NodeOwner {
     GateInput(GateIndex),
